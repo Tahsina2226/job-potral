@@ -1,71 +1,113 @@
-import React from "react";
-import Lottie from "lottie-react";
+import React, { useState } from "react";
 import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa";
-import animationData from "../assets/Animation - 1734369243575.json";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import auth from "../firebase.init"; // Firebase initialization
 
 const SignIn = () => {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const form = e.target;
+    const email = form.email.value.trim();
+    const password = form.password.value;
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Sign-in successful!");
+      navigate("/"); // Redirect to dashboard after successful sign-in
+    } catch (err) {
+      setError("Failed to sign in. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      alert("Google sign-in successful!");
+      navigate("/"); // Redirect after Google sign-in
+    } catch (err) {
+      setError("Google sign-in failed. Please try again.");
+    }
+  };
+
   return (
     <div className="flex justify-center items-center bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 p-6 min-h-screen">
-      <div className="space-y-8 bg-white shadow-2xl p-10 rounded-2xl w-full max-w-lg">
-        {/* Lottie Animation */}
-        <div className="flex justify-center bg-gray-100 shadow-inner mb-8 p-4 rounded-xl">
-          <Lottie animationData={animationData} loop={true} style={{ height: 150 }} />
-        </div>
-
+      <div className="space-y-8 bg-white shadow-2xl p-10 rounded-2xl w-full max-w-4xl">
         {/* Heading */}
         <h2 className="font-extrabold text-4xl text-center text-gray-800">
-          Welcome Back <span role="img" aria-label="wave">👋</span>
+          Sign In <span role="img" aria-label="sparkles">✨</span>
         </h2>
         <p className="text-center text-gray-500 text-sm">
-          Sign in to continue to your account.
+          Welcome back! Please sign in to continue.
         </p>
 
         {/* Form */}
-        <form className="space-y-6">
+        <form onSubmit={handleSignIn} className="gap-6 grid grid-cols-1 md:grid-cols-2">
           {/* Email */}
-          <div>
-            <label className="block mb-2 font-medium text-gray-700">Email</label>
+          <div className="mb-6">
+            <label htmlFor="email" className="block mb-2 font-medium text-gray-700">Email</label>
             <input
+              id="email"
+              name="email"
               type="email"
               placeholder="Enter your email"
-              className="border-gray-300 hover:shadow-md px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 w-full transition-all duration-300 ease-in-out focus:outline-none"
+              className={`border-gray-300 px-4 py-3 border rounded-lg w-full focus:outline-none transition-all duration-300 ${
+                error ? "border-red-500" : "hover:shadow-md focus:ring-2 focus:ring-blue-500"
+              }`}
             />
           </div>
 
           {/* Password */}
-          <div>
-            <label className="block mb-2 font-medium text-gray-700">Password</label>
+          <div className="mb-6">
+            <label htmlFor="password" className="block mb-2 font-medium text-gray-700">Password</label>
             <input
+              id="password"
+              name="password"
               type="password"
               placeholder="Enter your password"
-              className="border-gray-300 hover:shadow-md px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 w-full transition-all duration-300 ease-in-out focus:outline-none"
+              className={`border-gray-300 px-4 py-3 border rounded-lg w-full focus:outline-none transition-all duration-300 ${
+                error ? "border-red-500" : "hover:shadow-md focus:ring-2 focus:ring-blue-500"
+              }`}
             />
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex justify-between items-center text-sm">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="form-checkbox w-4 h-4 text-blue-600 transition duration-300 ease-in-out"
-              />
-              <span className="ml-2 text-gray-600">Remember Me</span>
-            </label>
-            <a
-              href="/forgot-password"
-              className="text-blue-600 hover:underline transition duration-300 ease-in-out"
-            >
-              Forgot Password?
-            </a>
-          </div>
+          {/* Error Message */}
+          {error && (
+            <div className="col-span-1 md:col-span-2 mb-4">
+              <p className="text-center text-red-500 text-sm">{error}</p>
+            </div>
+          )}
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="bg-gradient-to-r from-blue-600 hover:from-purple-600 to-purple-600 hover:to-blue-600 shadow-lg py-3 rounded-lg w-full font-semibold text-white transform transition duration-300 ease-in-out hover:scale-105"
-          >
-            Sign In
-          </button>
+          <div className="col-span-1 md:col-span-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105"
+              } shadow-lg py-3 rounded-lg w-full font-semibold text-white transition duration-300 ease-in-out`}
+            >
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </div>
         </form>
 
         {/* Divider */}
@@ -75,20 +117,27 @@ const SignIn = () => {
           <div className="flex-grow border-gray-300 border-t"></div>
         </div>
 
-        {/* Social Login Buttons */}
+        {/* Social Buttons */}
         <div className="flex justify-center space-x-6 mt-6">
-          <button className="bg-blue-600 hover:bg-blue-700 shadow-lg p-3 rounded-full text-white transition duration-300">
-            <FaFacebook size={20} />
-          </button>
-          <button className="bg-red-600 hover:bg-red-700 shadow-lg p-3 rounded-full text-white transition duration-300">
+          <button
+            className="bg-red-600 hover:bg-red-700 shadow-lg p-3 rounded-full text-white transition duration-300"
+            onClick={handleGoogleSignIn}
+          >
             <FaGoogle size={20} />
           </button>
-          <button className="bg-blue-400 hover:bg-blue-500 shadow-lg p-3 rounded-full text-white transition duration-300">
+          <button
+            className="bg-blue-600 hover:bg-blue-700 shadow-lg p-3 rounded-full text-white transition duration-300"
+          >
+            <FaFacebook size={20} />
+          </button>
+          <button
+            className="bg-blue-400 hover:bg-blue-500 shadow-lg p-3 rounded-full text-white transition duration-300"
+          >
             <FaTwitter size={20} />
           </button>
         </div>
 
-        {/* Redirect to Register */}
+        {/* Register Link */}
         <p className="mt-8 text-center text-gray-600">
           Don't have an account?{" "}
           <a

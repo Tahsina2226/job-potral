@@ -10,6 +10,7 @@ import MainLayout from "./layout/MainLayout";
 import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
 
+
 const router = createBrowserRouter([
   {
     path: "/",
